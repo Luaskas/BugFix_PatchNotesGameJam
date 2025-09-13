@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: a4be220830e90ea4eb88b48b7fd376ce, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -179,14 +179,46 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7366238873558166186, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
+    - target: {fileID: -7119781370976447264, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
     - target: {fileID: -3908052534607024893, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: -8848810374240701247, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
+    - target: {fileID: -1362685186176560022, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
+    - target: {fileID: 339537620136790720, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 339537620136790720, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
+    - target: {fileID: 339537620136790720, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c88ff8667fe67456bb09f6771c7243dc, type: 2}
+    - target: {fileID: 736109483650808900, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
     - target: {fileID: 919132149155446097, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
       propertyPath: m_Name
       value: robot
       objectReference: {fileID: 0}
+    - target: {fileID: 2512706525655254960, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -758,6 +790,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 401603545}
+  - component: {fileID: 401603546}
   m_Layer: 0
   m_Name: Visuals
   m_TagString: Untagged
@@ -781,6 +814,19 @@ Transform:
   - {fileID: 125870238}
   m_Father: {fileID: 1671071429}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &401603546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401603544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e457ad3f1e5d04255bf201d3006b0b75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  playerMaterial: {fileID: 2100000, guid: 1e29b97c17ec7fb4384b2da07bfc5226, type: 2}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1688,7 +1734,7 @@ MonoBehaviour:
   mainCamera: {fileID: 330585543}
   hitBox: {fileID: 2094584349}
   animator: {fileID: 770526232}
-  debugText: {fileID: 1966044290}
+  visualController: {fileID: 401603546}
   moveSpeed: 10
   rotationSpeed: 10
   gravity: -9.81
@@ -1699,7 +1745,7 @@ MonoBehaviour:
   isGrounded: 0
   knockBackForceBack: 5
   knockBackForceUp: 0.5
-  knockBackTimer: 0
+  knockBackTimer: 1.5
   attackCooldown: 0.5
   attackDuration: 0.5
 --- !u!143 &1671071425
@@ -2335,7 +2381,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -1580535799172915004, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+  - {fileID: 2100000, guid: 8d530ffe6c4968843806085897955b9d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -1,177 +1,187 @@
-using System;
 using System.Collections;
 using Debugging;
+using Player;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
-[RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+namespace Controller
 {
-    [Header("References")]
-    public GameObject mainCamera;
-    public GameObject hitBox;
-    public Animator animator;
-    public TextMeshProUGUI debugText;
+    [RequireComponent(typeof(CharacterController))]
+    public class PlayerController : MonoBehaviour
+    {
+        [Header("References")]
+        public GameObject mainCamera;
+        public GameObject hitBox;
+        public Animator animator;
+        public PlayerVisualController visualController;
     
-    [Header("Movement")]
-    public float moveSpeed = 5f;
-    public float rotationSpeed = 10f;
+        [Header("Movement")]
+        public float moveSpeed = 5f;
+        public float rotationSpeed = 10f;
     
-    [Header("Jump / Gravity")]
-    public float gravity = -9.81f;
-    public float jumpHeight = 2f;
-    public float gravityMultiplier = 2f; // increases gravity after apex
-    public float fallMultiplier = 2.5f; 
-    public float maxFallSpeed = -20f;     // clamp downward velocity
-    public bool isGrounded;
+        [Header("Jump / Gravity")]
+        public float gravity = -9.81f;
+        public float jumpHeight = 2f;
+        public float gravityMultiplier = 2f; 
+        public float fallMultiplier = 2.5f; 
+        public float maxFallSpeed = -20f;     
+        public bool isGrounded;
+        private bool reachedApex = false;
 
-    [Header("KnockBack")]
-    public float knockBackForceBack = 5f;
-    public float knockBackForceUp = 0.5f;
-    public float knockBackTimer = 0f;
-    private Vector3 knockBackDirection;
-    private bool isKnockedBack;
+        [Header("KnockBack")]
+        public float knockBackForceBack = 5f;
+        public float knockBackForceUp = 0.5f;
+        public float knockBackTimer = 0.3f; // shorter feels snappier
+        private bool isKnockedBack;
+        private bool knockbackTimerUp = true;
 
-    [Header("Attack")]
-    public float attackCooldown = 0.5f;
-    public float attackDuration = 0.5f;
-    private bool canAttack = true;
+        // New: stores temporary knockback velocity
+        private Vector3 knockbackVelocity;
 
-    private DebugLine debugLine;
+        [Header("Attack")]
+        public float attackCooldown = 0.5f;
+        public float attackDuration = 0.5f;
+        private bool canAttack = true;
 
-    private static readonly int IsMoving = Animator.StringToHash("isMoving");
-    private static readonly int Attack = Animator.StringToHash("attack");
+        private DebugLine debugLine;
 
-    private PlayerInputActions inputActions;
-    private CharacterController controller;
-    private Vector3 velocity;
-    private bool reachedApex = false; // track if jump apex reached
+        private static readonly int IsMoving = Animator.StringToHash("isMoving");
+        private static readonly int Attack = Animator.StringToHash("attack");
 
-    private void Awake()
-    {
-        controller = GetComponent<CharacterController>();
-        inputActions = new PlayerInputActions();
-        inputActions.Player.Attack.performed += ctx => StartAttack();
-        debugLine = OnScreenDebugController.Instance.CreateLine("PlayerControllerDebug", "PlayerControllerDebug");
-    }
+        private PlayerInputActions inputActions;
+        private CharacterController controller;
+        private Camera cam;
 
-    private void OnEnable()
-    {
-        inputActions.Enable();
-        mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
-    }
+        private Vector3 velocity;
 
-    private void OnDisable() => inputActions.Disable();
-
-    private void Update()
-    {
-        // --- Apply Knockback ---
-        if (isKnockedBack)
+        private void Awake()
         {
-            Vector3 knockBackPush = knockBackDirection * moveSpeed;
-            controller.Move(knockBackPush * Time.deltaTime);
-            knockBackTimer -= Time.deltaTime;
-            if (knockBackTimer <= 0f)
-                isKnockedBack = false;
-            return;
+            controller = GetComponent<CharacterController>();
+            inputActions = new PlayerInputActions();
+            inputActions.Player.Attack.performed += ctx => StartAttack();
+            debugLine = OnScreenDebugController.Instance.CreateLine("PlayerControllerDebug", "PlayerControllerDebug");
+            cam = Camera.main;
         }
 
-        // --- Camera-relative movement ---
-        Vector2 input = inputActions.Player.Move.ReadValue<Vector2>();
-        Vector3 camForward = Camera.main.transform.forward;
-        camForward.y = 0f;
-        camForward.Normalize();
-        Vector3 camRight = Camera.main.transform.right;
-        camRight.y = 0f;
-        camRight.Normalize();
-
-        Vector3 move = (camForward * input.y + camRight * input.x).normalized;
-
-        // --- Rotation ---
-        if (move.magnitude > 0.1f)
+        private void OnEnable()
         {
-            animator.SetBool(IsMoving, true);
-            Quaternion targetRotation = Quaternion.LookRotation(move);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        }
-        else
-        {
-            animator.SetBool(IsMoving, false);
+            inputActions.Enable();
+            mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
         }
 
-        // --- Apply horizontal movement ---
-        controller.Move(move * (moveSpeed * Time.deltaTime));
+        private void OnDisable() => inputActions.Disable();
 
-        // --- Ground check BEFORE gravity ---
-        if (isGrounded && velocity.y < 0)
+        private void Update()
         {
-            velocity.y = -2f;
-            reachedApex = false; // reset apex on ground
-        }
+            // --- Camera-relative movement ---
+            Vector2 input = inputActions.Player.Move.ReadValue<Vector2>();
+            Vector3 camForward = cam.transform.forward;
+            camForward.y = 0f;
+            camForward.Normalize();
+            Vector3 camRight = cam.transform.right;
+            camRight.y = 0f;
+            camRight.Normalize();
 
-        // --- Jump ---
-        if (inputActions.Player.Jump.triggered && isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
+            Vector3 move = (camForward * input.y + camRight * input.x).normalized;
 
-        // --- Apex detection ---
-        if (!reachedApex && velocity.y <= 0)
-            reachedApex = true;
+            // --- Rotation ---
+            if (move.magnitude > 0.1f)
+            {
+                animator.SetBool(IsMoving, true);
+                Quaternion targetRotation = Quaternion.LookRotation(move);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
+            else
+            {
+                animator.SetBool(IsMoving, false);
+            }
 
-        // --- Apply variable gravity ---
-        float currentGravity = gravity;
+            // --- Apply horizontal movement ---
+            controller.Move(move * (moveSpeed * Time.deltaTime));
 
-        // Falling or short hop
-        if (velocity.y < 0)
-        {
-            currentGravity *= gravityMultiplier;
-        }
-        else if (velocity.y > 0 && !inputActions.Player.Jump.IsPressed())
-        {
-            // Short hop: player released jump early
-            currentGravity *= fallMultiplier;
-        }
+            // --- Ground check BEFORE gravity ---
+            if (isGrounded && velocity.y < 0)
+            {
+                velocity.y = -2f;
+                reachedApex = false;
+            }
 
-        velocity.y += currentGravity * Time.deltaTime;
+            // --- Jump ---
+            if (inputActions.Player.Jump.triggered && isGrounded)
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            }
 
-        // Clamp falling speed
-        if (velocity.y < maxFallSpeed)
-            velocity.y = maxFallSpeed;
+            // --- Apex detection ---
+            if (!reachedApex && velocity.y <= 0)
+                reachedApex = true;
 
-        // --- Apply vertical movement ---
-        controller.Move(velocity * Time.deltaTime);
+            // --- Apply variable gravity ---
+            float currentGravity = gravity;
+            if (velocity.y < 0)
+            {
+                currentGravity *= gravityMultiplier;
+            }
+            else if (velocity.y > 0 && !inputActions.Player.Jump.IsPressed())
+            {
+                currentGravity *= fallMultiplier;
+            }
 
-        // --- Update grounded state ---
-        isGrounded = controller.isGrounded;
+            velocity.y += currentGravity * Time.deltaTime;
+
+            // Clamp falling speed
+            if (velocity.y < maxFallSpeed)
+                velocity.y = maxFallSpeed;
+
+            // --- Apply vertical + knockback movement ---
+            controller.Move((velocity + knockbackVelocity) * Time.deltaTime);
+
+            // --- Decay knockback over time ---
+            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, 5f * Time.deltaTime);
+
+            // --- Update grounded state ---
+            isGrounded = controller.isGrounded;
         
-        debugLine.Text = $"Velocity Y: {velocity.y:F2} | Grounded: {isGrounded}";
-    }
+            debugLine.Text = $"Velocity Y: {velocity.y:F2} | Grounded: {isGrounded} | Knockback: {knockbackVelocity}";
+        }
 
-    private void StartAttack()
-    {
-        if (canAttack)
-            StartCoroutine(PerformAttack());
-    }
+        private void StartAttack()
+        {
+            if (canAttack)
+                StartCoroutine(PerformAttack());
+        }
 
-    private IEnumerator PerformAttack()
-    {
-        canAttack = false;
-        animator.SetTrigger(Attack);
-        hitBox.SetActive(true);
-        yield return new WaitForSeconds(attackDuration);
-        hitBox.SetActive(false);
-        yield return new WaitForSeconds(attackCooldown);
-        canAttack = true;
-    }
+        private IEnumerator PerformAttack()
+        {
+            canAttack = false;
+            animator.SetTrigger(Attack);
+            hitBox.SetActive(true);
+            yield return new WaitForSeconds(attackDuration);
+            hitBox.SetActive(false);
+            yield return new WaitForSeconds(attackCooldown);
+            canAttack = true;
+        }
 
-    public void ApplyKnockBack(Vector3 direction)
-    {
-        direction.y = knockBackForceUp;
-        direction.Normalize();
-        controller.Move(direction * knockBackForceBack);
+        private IEnumerator PerformKnockback(Vector3 direction)
+        {
+            knockbackTimerUp = false;
+            visualController.ActivateDamageShader();
+        
+            direction.y = knockBackForceUp;
+            direction.Normalize();
+
+            // Give an impulse (one-time push)
+            knockbackVelocity = direction * knockBackForceBack;
+            
+            yield return new WaitForSeconds(knockBackTimer);
+        
+            visualController.ActivateDefaultShader();
+            knockbackTimerUp = true;
+        }
+
+        public void ApplyKnockBack(Vector3 dir)
+        {
+            if (knockbackTimerUp) StartCoroutine(PerformKnockback(dir));
+        }
     }
 }
