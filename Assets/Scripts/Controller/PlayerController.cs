@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -29,11 +30,18 @@ public class PlayerController : MonoBehaviour
     private Vector3 knockBackDirection;
     private bool isKnockedBack;
     
-    [Header("Attack)")]
+    [Header("Attack")]
     public float attackCooldown = 0.5f;
     public float attackDuration = 0.5f;
     private bool canAttack = true;
     
+    [Header("Animation")]
+    public Animator animator;
+
+    [Header("Debug")] public TextMeshProUGUI debugText;
+    
+    private static readonly int IsMoving = Animator.StringToHash("isMoving");
+    private static readonly int Attack = Animator.StringToHash("attack");
     private PlayerInputActions inputActions;
     private CharacterController controller;
     private Vector3 velocity;
@@ -73,7 +81,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
-        // Camera-relative Movement
+        // Camera-relative movement
         Vector2 input = inputActions.Player.Move.ReadValue<Vector2>();
         Vector3 camForward = Camera.main.transform.forward;
         camForward.y = 0f;
@@ -81,55 +89,49 @@ public class PlayerController : MonoBehaviour
         Vector3 camRight = Camera.main.transform.right;
         camRight.y = 0f;
         camRight.Normalize();
-        
-        Vector3 move = camForward * input.y + camRight * input.x;
-        move = move.normalized;
-        
-        /*
-        //-------- Ground Check ------------
-        isGrounded = controller.isGrounded;
-        if (isGrounded && velocity.y < 0) velocity.y = -2f;
 
-        //-------- Movement ---------------
-        Vector2 input = inputActions.Player.Move.ReadValue<Vector2>();
-        Vector3 move = new Vector3(input.x, 0, input.y);
-        //Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-        controller.Move(move * moveSpeed * Time.deltaTime);
-        
-        //-------- Gravity --------------
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);*/
+        Vector3 move = (camForward * input.y + camRight * input.x).normalized;
 
-        
-        // Rotation in Movementdirection
+        // Rotation
         if (move.magnitude > 0.1f)
         {
+            animator.SetBool(IsMoving, true);
             Quaternion targetRotation = Quaternion.LookRotation(move);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
+        else
+        {
+            animator.SetBool(IsMoving, false);
+        }
 
-        
-        // Apply Movement
-        Vector3 displacement = move * moveSpeed;
-        controller.Move(displacement * Time.deltaTime);
-        
-        // Ground check
-        
-        if(controller.isGrounded && velocity.y < 0)
+        // Apply movement (horizontal)
+        controller.Move(move * (moveSpeed * Time.deltaTime));
+
+        // Ground check BEFORE gravity
+
+        if (isGrounded && velocity.y < 0)
+        {
             velocity.y = -2f;
+        }
+
+        debugText.text = velocity.y.ToString();
+        
         
         // Jump
-        isGrounded = controller.isGrounded;
-        if (inputActions.Player.Jump.triggered && controller.isGrounded)
-        {
+        if (inputActions.Player.Jump.triggered && isGrounded)
+        { 
             velocity.y = Mathf.Sqrt(jumpHight * jumpSpeed * gravity);
-            Debug.Log("Player Jumped");
         }
-            
-        
-        // Gravity
+           
+
+        // Apply gravity
         velocity.y += gravity * Time.deltaTime;
+
+        // Apply vertical movement
         controller.Move(velocity * Time.deltaTime);
+
+        // ✅ Final grounded state
+        isGrounded = controller.isGrounded;
 
     }
 
@@ -148,7 +150,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator PerformAttack()
     {
         canAttack = false;
-        
+        animator.SetTrigger(Attack);
         hitBox.SetActive(true);
         yield return new WaitForSeconds(attackDuration);
         hitBox.SetActive(false);
