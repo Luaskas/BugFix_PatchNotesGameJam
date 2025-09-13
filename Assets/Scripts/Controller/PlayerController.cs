@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Debugging;
 using Player;
@@ -67,6 +68,11 @@ namespace Controller
         {
             inputActions.Enable();
             mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
+        }
+
+        private void Start()
+        {
+            visualController.ActivateDefaultShader();
         }
 
         private void OnDisable() => inputActions.Disable();
