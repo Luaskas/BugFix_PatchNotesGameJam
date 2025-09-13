@@ -1,87 +1,85 @@
 using System;
 using System.Collections;
+using Debugging;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
-
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("References")]
     public GameObject mainCamera;
     public GameObject hitBox;
-    
-    [Header("Jump / Gravitiy")]
-    public float gravity = -9.81f;
-    public float jumpHight = 2f;
-    public float jumpSpeed = 8f;
-    public bool isGrounded;
+    public Animator animator;
+    public TextMeshProUGUI debugText;
     
     [Header("Movement")]
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
     
+    [Header("Jump / Gravity")]
+    public float gravity = -9.81f;
+    public float jumpHeight = 2f;
+    public float gravityMultiplier = 2f; // increases gravity after apex
+    public float fallMultiplier = 2.5f; 
+    public float maxFallSpeed = -20f;     // clamp downward velocity
+    public bool isGrounded;
+
     [Header("KnockBack")]
     public float knockBackForceBack = 5f;
     public float knockBackForceUp = 0.5f;
     public float knockBackTimer = 0f;
     private Vector3 knockBackDirection;
     private bool isKnockedBack;
-    
+
     [Header("Attack")]
     public float attackCooldown = 0.5f;
     public float attackDuration = 0.5f;
     private bool canAttack = true;
-    
-    [Header("Animation")]
-    public Animator animator;
 
-    [Header("Debug")] public TextMeshProUGUI debugText;
-    
+    private DebugLine debugLine;
+
     private static readonly int IsMoving = Animator.StringToHash("isMoving");
     private static readonly int Attack = Animator.StringToHash("attack");
+
     private PlayerInputActions inputActions;
     private CharacterController controller;
     private Vector3 velocity;
-    
+    private bool reachedApex = false; // track if jump apex reached
+
     private void Awake()
     {
-        
         controller = GetComponent<CharacterController>();
-        
         inputActions = new PlayerInputActions();
-        /*inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;*/
-
-        //inputActions.Player.Jump.performed += ctx => Jump();
         inputActions.Player.Attack.performed += ctx => StartAttack();
+        debugLine = OnScreenDebugController.Instance.CreateLine("PlayerControllerDebug", "PlayerControllerDebug");
     }
-    
-    void OnEnable()
+
+    private void OnEnable()
     {
         inputActions.Enable();
         mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
     }
 
-    void OnDisable() => inputActions.Disable();
-    
-    void Update()
+    private void OnDisable() => inputActions.Disable();
+
+    private void Update()
     {
-        
-        // Apply Knockback
+        // --- Apply Knockback ---
         if (isKnockedBack)
         {
             Vector3 knockBackPush = knockBackDirection * moveSpeed;
             controller.Move(knockBackPush * Time.deltaTime);
             knockBackTimer -= Time.deltaTime;
-            if(knockBackTimer <= 0f)
+            if (knockBackTimer <= 0f)
                 isKnockedBack = false;
             return;
         }
-        
-        // Camera-relative movement
+
+        // --- Camera-relative movement ---
         Vector2 input = inputActions.Player.Move.ReadValue<Vector2>();
         Vector3 camForward = Camera.main.transform.forward;
         camForward.y = 0f;
@@ -92,7 +90,7 @@ public class PlayerController : MonoBehaviour
 
         Vector3 move = (camForward * input.y + camRight * input.x).normalized;
 
-        // Rotation
+        // --- Rotation ---
         if (move.magnitude > 0.1f)
         {
             animator.SetBool(IsMoving, true);
@@ -104,44 +102,56 @@ public class PlayerController : MonoBehaviour
             animator.SetBool(IsMoving, false);
         }
 
-        // Apply movement (horizontal)
+        // --- Apply horizontal movement ---
         controller.Move(move * (moveSpeed * Time.deltaTime));
 
-        // Ground check BEFORE gravity
-
+        // --- Ground check BEFORE gravity ---
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
+            reachedApex = false; // reset apex on ground
         }
 
-        debugText.text = velocity.y.ToString();
-        
-        
-        // Jump
+        // --- Jump ---
         if (inputActions.Player.Jump.triggered && isGrounded)
-        { 
-            velocity.y = Mathf.Sqrt(jumpHight * jumpSpeed * gravity);
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
-           
 
-        // Apply gravity
-        velocity.y += gravity * Time.deltaTime;
+        // --- Apex detection ---
+        if (!reachedApex && velocity.y <= 0)
+            reachedApex = true;
 
-        // Apply vertical movement
+        // --- Apply variable gravity ---
+        float currentGravity = gravity;
+
+        // Falling or short hop
+        if (velocity.y < 0)
+        {
+            currentGravity *= gravityMultiplier;
+        }
+        else if (velocity.y > 0 && !inputActions.Player.Jump.IsPressed())
+        {
+            // Short hop: player released jump early
+            currentGravity *= fallMultiplier;
+        }
+
+        velocity.y += currentGravity * Time.deltaTime;
+
+        // Clamp falling speed
+        if (velocity.y < maxFallSpeed)
+            velocity.y = maxFallSpeed;
+
+        // --- Apply vertical movement ---
         controller.Move(velocity * Time.deltaTime);
 
-        // ✅ Final grounded state
+        // --- Update grounded state ---
         isGrounded = controller.isGrounded;
-
+        
+        debugLine.Text = $"Velocity Y: {velocity.y:F2} | Grounded: {isGrounded}";
     }
 
-    void Jump()
-    {
-        if(isGrounded)
-            velocity.y = Mathf.Sqrt(jumpHight * jumpSpeed * gravity);
-    }
-
-    void StartAttack()
+    private void StartAttack()
     {
         if (canAttack)
             StartCoroutine(PerformAttack());
@@ -155,17 +165,13 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(attackDuration);
         hitBox.SetActive(false);
         yield return new WaitForSeconds(attackCooldown);
-        
         canAttack = true;
     }
 
     public void ApplyKnockBack(Vector3 direction)
     {
-        //isKnockedBack = true;
         direction.y = knockBackForceUp;
         direction.Normalize();
         controller.Move(direction * knockBackForceBack);
-        
     }
-    
 }
