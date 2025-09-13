@@ -1903,7 +1903,6 @@ GameObject:
   - component: {fileID: 1966044289}
   - component: {fileID: 1966044291}
   - component: {fileID: 1966044290}
-  - component: {fileID: 1966044292}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2029,19 +2028,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1966044288}
   m_CullTransparentMesh: 1
---- !u!114 &1966044292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1966044288}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d105e26c6e36d44d080c4aab2e0abbc4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Debugging.OnScreenDebugController
-  debugText: {fileID: 1966044290}
 --- !u!1 &2005374005
 GameObject:
   m_ObjectHideFlags: 0
@@ -2054,6 +2040,7 @@ GameObject:
   - component: {fileID: 2005374008}
   - component: {fileID: 2005374007}
   - component: {fileID: 2005374006}
+  - component: {fileID: 2005374010}
   m_Layer: 5
   m_Name: DebugCanvas
   m_TagString: Untagged
@@ -2144,6 +2131,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &2005374010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2005374005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d105e26c6e36d44d080c4aab2e0abbc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Debugging.OnScreenDebugController
+  debugText: {fileID: 1966044290}
 --- !u!1 &2094584349
 GameObject:
   m_ObjectHideFlags: 0
