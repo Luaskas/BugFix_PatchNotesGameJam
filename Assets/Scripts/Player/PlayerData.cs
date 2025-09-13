@@ -1,29 +1,57 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
 public class PlayerData : MonoBehaviour
 {
     //public GameObject player;
-    
-    private int maxHP = 10;
-    private int currentHP;
-    private int dmg = 5;
 
+    public static PlayerData Instance;
+    
+    public float maxHp = 15;
+    public float currentHp;
+    public int dmg = 5;
+
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
 
     private void Start()
     {
-        currentHP = maxHP;
+        currentHp = maxHp;
+        //UI_Manager.Instance.currentPlayerHpInPercent = currentHp/maxHp;
     }
 
     public void TakeDmg(int enemyDmg)
     {
-        currentHP -= enemyDmg;
-        Debug.Log($"{currentHP} HP left from {maxHP} HP.");
+        currentHp -= enemyDmg;
+        float currentHpInPercent = currentHp / maxHp;
+        Debug.Log($"{currentHp} HP left from {maxHp} HP.");
+        //UI_Manager.Instance.targetValue = currentHpInPercent;
+
+        if (currentHp <= 0)
+            Die();
     }
 
     public int MakeDmg()
     {
         return dmg;
+    }
+
+    private void Die()
+    {
+        Debug.Log("Player Died.");
+        Destroy(gameObject);
     }
 }
