@@ -336,6 +336,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: robot
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2512706525655254960, guid: ac9c075a4eeab4b0f8abbe443ada3318, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 

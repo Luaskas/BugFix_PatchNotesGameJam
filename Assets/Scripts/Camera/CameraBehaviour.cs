@@ -24,7 +24,7 @@ public class CameraBehaviour : MonoBehaviour
 
     private void Awake()
     {
-        currentCameraState = CameraStates.Dialog;
+        currentCameraState = CameraStates.ActivePlayScene;
     }
 
     void LateUpdate()
