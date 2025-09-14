@@ -1,15 +1,19 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Debugging;
 using Player;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Controller
 {
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
+        public static PlayerController Instance;
+        
         [Header("References")]
         public GameObject mainCamera;
         public GameObject hitBox;
@@ -48,7 +52,14 @@ namespace Controller
 
         private static readonly int IsMoving = Animator.StringToHash("isMoving");
         private static readonly int Attack = Animator.StringToHash("attack");
+        
+        [Header("Abilities")]
+        public List<AbilitiesGeneral> abilities = new List<AbilitiesGeneral>();
 
+        private bool canTeleport = true;
+
+
+        private CapsuleCollider capsule;
         private PlayerInputActions inputActions;
         private CharacterController controller;
         private Camera cam;
@@ -57,17 +68,29 @@ namespace Controller
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            
             controller = GetComponent<CharacterController>();
             inputActions = new PlayerInputActions();
             inputActions.Player.Attack.performed += ctx => StartAttack();
+            
             debugLine = OnScreenDebugController.Instance.CreateLine("PlayerControllerDebug", "PlayerControllerDebug");
             cam = Camera.main;
+
+            capsule = gameObject.GetComponent<CapsuleCollider>();
         }
 
         private void OnEnable()
         {
-            inputActions.Enable();
+            inputActions.Player.Enable();
             mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
+            inputActions.Player.TeleportCollider.started += OnTeleportPressed;
         }
 
         private void Start()
@@ -75,7 +98,11 @@ namespace Controller
             visualController.ActivateDefaultShader();
         }
 
-        private void OnDisable() => inputActions.Disable();
+        private void OnDisable()
+        {
+            inputActions.Player.TeleportCollider.performed -= OnTeleportPressed;
+            inputActions.Disable();
+        }
 
         private void Update()
         {
@@ -87,6 +114,7 @@ namespace Controller
             Vector3 camRight = cam.transform.right;
             camRight.y = 0f;
             camRight.Normalize();
+            
 
             Vector3 move = (camForward * input.y + camRight * input.x).normalized;
 
@@ -178,6 +206,7 @@ namespace Controller
 
             // Give an impulse (one-time push)
             knockbackVelocity = direction * knockBackForceBack;
+                
             
             yield return new WaitForSeconds(knockBackTimer);
         
@@ -185,9 +214,42 @@ namespace Controller
             knockbackTimerUp = true;
         }
 
-        public void ApplyKnockBack(Vector3 dir)
+        public void ApplyKnockBack(Vector3 dir, int damage)
         {
-            if (knockbackTimerUp) StartCoroutine(PerformKnockback(dir));
+            if (knockbackTimerUp)
+            {
+                PlayerData.Instance.TakeDmg(damage);
+                StartCoroutine(PerformKnockback(dir));
+            }
+        }
+
+        private void OnTeleportPressed(InputAction.CallbackContext ctx)
+        {
+            Debug.Log("OnTeleportPressed");
+            StartTeleport();
+        }
+        
+        void StartTeleport()
+        {
+            if (canTeleport)
+            {
+                //controller.enabled = false;
+                //PlayerData.Instance.transform.position = Vector3.down * 4;
+                Ray ray = new Ray(transform.position, -transform.up);
+                RaycastHit hit;
+
+                if (Physics.Raycast(ray, out hit))
+                {
+                    if (hit.collider.gameObject.CompareTag("Floor"))
+                    {
+                        hit.collider.gameObject.GetComponent<EnvironmentalController>().DeactivateGroundCollider();
+                    }
+                    else
+                    {
+                        Debug.Log(hit.collider.gameObject.name);
+                    }
+                }
+            }
         }
     }
 }

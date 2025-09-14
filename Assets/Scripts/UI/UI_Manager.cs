@@ -3,10 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Serialization;
+using System.Collections;
 
 public class UI_Manager : MonoBehaviour
 {
-    public RectTransform[] panels;
+    //public RectTransform[] panels;
     
     public Transform panel;
 
@@ -16,6 +17,9 @@ public class UI_Manager : MonoBehaviour
     
     public float speed = 1f;
     public float hpSmooth = 0.0f;
+    public float smoothFade = 0.0f;
+
+    public string scene;
     
     private void Awake()
     {
@@ -34,29 +38,74 @@ public class UI_Manager : MonoBehaviour
         
         hpSmooth = Mathf.MoveTowards(hpSmooth, target, speed * Time.deltaTime);
         
-        //hpBarFillAmount = Mathf.MoveTowards(currentPlayerHpInPercent, targetValue, Time.deltaTime * speed);
-        
         HpBar.fillAmount = hpSmooth;
         if (HpBar.fillAmount >= 0.6f)
         {
             HpBar.color = Color.green;
-            //HpBarBG.color = HpBar.color;
         }
             
         else if (HpBar.fillAmount >= 0.3f && HpBar.fillAmount < 0.6f)
         {
             HpBar.color = Color.yellow;
-            //HpBarBG.color = HpBar.color;
         }
 
         else
         {
             HpBar.color = Color.red;
-            //HpBarBG.color = HpBar.color;
         }
-        
+    }
+    public void OnSceneButtonClicked(int sceneIndex)
+    {
+        GameScene scene = (GameScene)sceneIndex;
+        SceneLoader.LoadScene(scene);
     }
     
-    
+    [SerializeField] private Image[] panels;
+
+    // Fade In
+    public IEnumerator FadeIn(int index, float duration)
+    {
+        Debug.Log($"FadeIn with Panel{panels[0].gameObject.name}");
+        Image panel = panels[index];
+        panel.gameObject.SetActive(true);
+        Color c = panel.color;
+        c.a = 0f;
+        panel.color = c;
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            c.a = Mathf.Lerp(0f, 1f, t / duration); // 0 → 1
+            panel.color = c;
+            yield return null;
+        }
+
+        c.a = 1f;
+        panel.color = c;
+    }
+
+    // Fade Out
+    public IEnumerator FadeOut(int index, float duration)
+    {
+        Debug.Log($"FadeOut with Panel{panels[0].gameObject.name}");
+        Image panel = panels[index];
+        Color c = panel.color;
+        c.a = 1f;
+        panel.color = c;
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            c.a = Mathf.Lerp(1f, 0f, t / duration); // 1 → 0
+            panel.color = c;
+            yield return null;
+        }
+
+        c.a = 0f;
+        panel.color = c;
+        panel.gameObject.SetActive(false);
+    }
     
 }

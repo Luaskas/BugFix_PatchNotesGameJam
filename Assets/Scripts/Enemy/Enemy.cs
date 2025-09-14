@@ -39,16 +39,11 @@ public class Enemy : MonoBehaviour
     public void OnTriggerEnter(Collider other)
     {
         PlayerController playerController = other.gameObject.GetComponent<PlayerController>();
-        
-        if (other.CompareTag("Player"))
-        {
-            other.GetComponent<PlayerData>().TakeDmg(damage);
-        }
 
         if (playerController != null)
         {
             Vector3 knockBackDir = playerController.transform.position - transform.position;
-            playerController.ApplyKnockBack(knockBackDir);
+            playerController.ApplyKnockBack(knockBackDir, damage);
         }
         
     }

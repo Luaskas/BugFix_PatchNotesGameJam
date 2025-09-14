@@ -1,4 +1,5 @@
 using System;
+using Controller;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,6 +16,7 @@ public class PlayerData : MonoBehaviour
     public float currentHp;
     public int dmg = 5;
 
+    public bool canTakeDamage = true;
 
     private void Awake()
     {
@@ -30,7 +32,6 @@ public class PlayerData : MonoBehaviour
     private void Start()
     {
         currentHp = maxHp;
-        //UI_Manager.Instance.currentPlayerHpInPercent = currentHp/maxHp;
     }
 
     public void TakeDmg(int enemyDmg)
@@ -38,7 +39,6 @@ public class PlayerData : MonoBehaviour
         currentHp -= enemyDmg;
         float currentHpInPercent = currentHp / maxHp;
         Debug.Log($"{currentHp} HP left from {maxHp} HP.");
-        //UI_Manager.Instance.targetValue = currentHpInPercent;
 
         if (currentHp <= 0)
             Die();
@@ -52,6 +52,17 @@ public class PlayerData : MonoBehaviour
     private void Die()
     {
         Debug.Log("Player Died.");
-        Destroy(gameObject);
+        //PlayerController.Instance.enabled = false;
+        StartCoroutine(UI_Manager.Instance.FadeIn(0, 3f));
+        GameManager.Instance.Respawn();
+        StartCoroutine(UI_Manager.Instance.FadeOut(0, 3f));
     }
+    
+    void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Deadzone"))
+            GameManager.Instance.Respawn();
+            
+    }
+    
 }
