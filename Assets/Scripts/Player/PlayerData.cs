@@ -14,6 +14,7 @@ public class PlayerData : MonoBehaviour
     public float maxHp = 15;
     public float currentHp;
     public int dmg = 5;
+    private int errors = 0;
 
 
     private void Awake()
@@ -43,15 +44,22 @@ public class PlayerData : MonoBehaviour
         if (currentHp <= 0)
             Die();
     }
-
+    
     public int MakeDmg()
     {
         return dmg;
     }
 
+    public void IncreaseErrors()
+    {
+        errors++;
+    }
+    
+    public int GetErrors() => errors;
+
     private void Die()
     {
         Debug.Log("Player Died.");
-        Destroy(gameObject);
+        //Destroy(gameObject);
     }
 }

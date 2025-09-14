@@ -148,7 +148,7 @@ namespace Controller
             // --- Update grounded state ---
             isGrounded = controller.isGrounded;
         
-            debugLine.Text = $"Velocity Y: {velocity.y:F2} | Grounded: {isGrounded} | Knockback: {knockbackVelocity}";
+            debugLine.Text = $"Errors: {PlayerData.Instance.GetErrors()}";
         }
 
         private void StartAttack()
@@ -159,6 +159,7 @@ namespace Controller
 
         private IEnumerator PerformAttack()
         {
+            AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.ATTACK);
             canAttack = false;
             animator.SetTrigger(Attack);
             hitBox.SetActive(true);
@@ -172,6 +173,7 @@ namespace Controller
         {
             knockbackTimerUp = false;
             visualController.ActivateDamageShader();
+            AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DAMAGE);
         
             direction.y = knockBackForceUp;
             direction.Normalize();
@@ -187,7 +189,11 @@ namespace Controller
 
         public void ApplyKnockBack(Vector3 dir)
         {
-            if (knockbackTimerUp) StartCoroutine(PerformKnockback(dir));
+            if (knockbackTimerUp)
+            {
+                if(PlayerData.Instance.currentHp <= 0) AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DEATH);
+                StartCoroutine(PerformKnockback(dir));
+            }
         }
     }
 }
