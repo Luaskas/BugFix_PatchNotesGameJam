@@ -8,15 +8,13 @@ using UnityEngine.UIElements;
 
 public class PlayerData : MonoBehaviour
 {
-    //public GameObject player;
-
     public static PlayerData Instance;
     
     public float maxHp = 15;
     public float currentHp;
     public int dmg = 5;
+    private int errors = 0;
 
-    public bool canTakeDamage = true;
 
     private void Awake()
     {
@@ -39,7 +37,6 @@ public class PlayerData : MonoBehaviour
         currentHp -= enemyDmg;
         float currentHpInPercent = currentHp / maxHp;
         Debug.Log($"{currentHp} HP left from {maxHp} HP.");
-
         if (currentHp <= 0)
             Die();
     }
@@ -49,10 +46,16 @@ public class PlayerData : MonoBehaviour
         return dmg;
     }
 
+    public void IncreaseErrors()
+    {
+        errors++;
+    }
+    
+    public int GetErrors() => errors;
+
     private void Die()
     {
         Debug.Log("Player Died.");
-        //PlayerController.Instance.enabled = false;
         StartCoroutine(UI_Manager.Instance.FadeIn(0, 3f));
         GameManager.Instance.Respawn();
         StartCoroutine(UI_Manager.Instance.FadeOut(0, 3f));

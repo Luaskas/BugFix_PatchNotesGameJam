@@ -52,9 +52,6 @@ namespace Controller
 
         private static readonly int IsMoving = Animator.StringToHash("isMoving");
         private static readonly int Attack = Animator.StringToHash("attack");
-        
-        [Header("Abilities")]
-        public List<AbilitiesGeneral> abilities = new List<AbilitiesGeneral>();
 
         private bool canTeleport = true;
 
@@ -79,11 +76,8 @@ namespace Controller
             controller = GetComponent<CharacterController>();
             inputActions = new PlayerInputActions();
             inputActions.Player.Attack.performed += ctx => StartAttack();
-            
             debugLine = OnScreenDebugController.Instance.CreateLine("PlayerControllerDebug", "PlayerControllerDebug");
             cam = Camera.main;
-
-            capsule = gameObject.GetComponent<CapsuleCollider>();
         }
 
         private void OnEnable()
@@ -114,7 +108,6 @@ namespace Controller
             Vector3 camRight = cam.transform.right;
             camRight.y = 0f;
             camRight.Normalize();
-            
 
             Vector3 move = (camForward * input.y + camRight * input.x).normalized;
 
@@ -176,7 +169,7 @@ namespace Controller
             // --- Update grounded state ---
             isGrounded = controller.isGrounded;
         
-            debugLine.Text = $"Velocity Y: {velocity.y:F2} | Grounded: {isGrounded} | Knockback: {knockbackVelocity}";
+            debugLine.Text = $"Errors: {PlayerData.Instance.GetErrors()}";
         }
 
         private void StartAttack()
@@ -187,6 +180,7 @@ namespace Controller
 
         private IEnumerator PerformAttack()
         {
+            AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.ATTACK);
             canAttack = false;
             animator.SetTrigger(Attack);
             hitBox.SetActive(true);
@@ -200,13 +194,13 @@ namespace Controller
         {
             knockbackTimerUp = false;
             visualController.ActivateDamageShader();
+            AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DAMAGE);
         
             direction.y = knockBackForceUp;
             direction.Normalize();
 
             // Give an impulse (one-time push)
             knockbackVelocity = direction * knockBackForceBack;
-                
             
             yield return new WaitForSeconds(knockBackTimer);
         
@@ -218,11 +212,12 @@ namespace Controller
         {
             if (knockbackTimerUp)
             {
+                if(PlayerData.Instance.currentHp <= 0) AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DEATH);
                 PlayerData.Instance.TakeDmg(damage);
                 StartCoroutine(PerformKnockback(dir));
             }
         }
-
+        
         private void OnTeleportPressed(InputAction.CallbackContext ctx)
         {
             Debug.Log("OnTeleportPressed");
