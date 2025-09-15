@@ -48,12 +48,16 @@ namespace Controller
         public float attackDuration = 0.5f;
         private bool canAttack = true;
 
+        [Header("TeleportAbilitie")] 
+        private bool canTeleport = true;
+        public GameObject teleportTarget;
+
         private DebugLine debugLine;
 
         private static readonly int IsMoving = Animator.StringToHash("isMoving");
         private static readonly int Attack = Animator.StringToHash("attack");
 
-        private bool canTeleport = true;
+        
 
 
         private CapsuleCollider capsule;
@@ -94,7 +98,7 @@ namespace Controller
 
         private void OnDisable()
         {
-            inputActions.Player.TeleportCollider.performed -= OnTeleportPressed;
+            inputActions.Player.TeleportCollider.started -= OnTeleportPressed;
             inputActions.Disable();
         }
 
@@ -226,10 +230,16 @@ namespace Controller
         
         void StartTeleport()
         {
-            if (canTeleport)
+            // --- Check for Contact with breachable wall ---
+            if (teleportTarget != null)
             {
-                //controller.enabled = false;
-                //PlayerData.Instance.transform.position = Vector3.down * 4;
+                Debug.Log("TriggerZone detected, gameObject deactivated");
+                teleportTarget.GetComponent<EnvironmentalController>().DeactivateColliderAndWaitForActivation();
+            }
+                
+            // --- When no contact, then cast Ray to Floor ---
+            else
+            {
                 Ray ray = new Ray(transform.position, -transform.up);
                 RaycastHit hit;
 
@@ -237,14 +247,26 @@ namespace Controller
                 {
                     if (hit.collider.gameObject.CompareTag("Floor"))
                     {
-                        hit.collider.gameObject.GetComponent<EnvironmentalController>().DeactivateGroundCollider();
-                    }
-                    else
-                    {
-                        Debug.Log(hit.collider.gameObject.name);
+                        hit.collider.gameObject.GetComponent<EnvironmentalController>().DeactivateColliderAndWaitForActivation();
+                        
                     }
                 }
             }
         }
+        
+        public void Respawn()
+        {
+            // --- Sets position of Player to transform of empty gameObject "Spawn"
+            // --- and checks if player has 0 HP -> Refills 
+            Debug.Log("Respawn");
+            
+            if(PlayerData.Instance.currentHp <= 0)
+                PlayerData.Instance.currentHp = PlayerData.Instance.maxHp;
+        
+            controller.enabled = false;
+            gameObject.transform.position = GameManager.Instance.spawn.transform.position;
+            controller.enabled = true;
+        }
+        
     }
 }

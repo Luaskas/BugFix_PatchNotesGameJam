@@ -36,22 +36,5 @@ public class GameManager : MonoBehaviour
             spawnPos = new Vector3(-10f, 0.5f, -20f);
     }
 
-    public void Respawn()
-    {
-        Debug.Log("Respawn");
-        PlayerData.Instance.currentHp = PlayerData.Instance.maxHp;
-        
-        PlayerData.Instance.GetComponent<CharacterController>().enabled = false;
-        PlayerData.Instance.transform.position = spawn.transform.position;
-        PlayerData.Instance.GetComponent<CharacterController>().enabled = true;
-    }
-
-
-    void OnTriggerEnter(Collider other)
-    {
-        if(other.CompareTag("Player"))
-            Respawn();
-            
-    }
     
 }

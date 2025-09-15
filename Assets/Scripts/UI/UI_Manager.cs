@@ -65,7 +65,6 @@ public class UI_Manager : MonoBehaviour
     // Fade In
     public IEnumerator FadeIn(int index, float duration)
     {
-        Debug.Log($"FadeIn with Panel{panels[0].gameObject.name}");
         Image panel = panels[index];
         panel.gameObject.SetActive(true);
         Color c = panel.color;
@@ -88,7 +87,6 @@ public class UI_Manager : MonoBehaviour
     // Fade Out
     public IEnumerator FadeOut(int index, float duration)
     {
-        Debug.Log($"FadeOut with Panel{panels[0].gameObject.name}");
         Image panel = panels[index];
         Color c = panel.color;
         c.a = 1f;
@@ -107,5 +105,4 @@ public class UI_Manager : MonoBehaviour
         panel.color = c;
         panel.gameObject.SetActive(false);
     }
-    
 }

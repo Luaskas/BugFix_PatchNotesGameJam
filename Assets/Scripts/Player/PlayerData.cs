@@ -57,14 +57,18 @@ public class PlayerData : MonoBehaviour
     {
         Debug.Log("Player Died.");
         StartCoroutine(UI_Manager.Instance.FadeIn(0, 3f));
-        GameManager.Instance.Respawn();
+        PlayerController.Instance.Respawn();
         StartCoroutine(UI_Manager.Instance.FadeOut(0, 3f));
     }
     
     void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Deadzone"))
-            GameManager.Instance.Respawn();
+        if (other.CompareTag("Deadzone"))
+        {
+            Debug.Log("Deadzone triggered.");
+            PlayerController.Instance.Respawn();
+        }
+            
             
     }
     
