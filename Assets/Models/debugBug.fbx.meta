@@ -3,7 +3,17 @@ guid: 1b94c9f40ed5645c992ae7fb15898438
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bugBody
+    second: {fileID: 2100000, guid: 49677e7cc742444aeba3f799035d70ed, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bugJoints
+    second: {fileID: 2100000, guid: 3aed7b96bc02144238d9390879899805, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -35,7 +45,7 @@ ModelImporter:
       takeName: Armature|Crawl
       internalID: -4424181212379913186
       firstFrame: 0
-      lastFrame: 48
+      lastFrame: 20
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
