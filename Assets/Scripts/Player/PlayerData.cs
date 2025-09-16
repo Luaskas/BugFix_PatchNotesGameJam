@@ -68,8 +68,6 @@ public class PlayerData : MonoBehaviour
             Debug.Log("Deadzone triggered.");
             PlayerController.Instance.Respawn();
         }
-            
-            
     }
     
 }
