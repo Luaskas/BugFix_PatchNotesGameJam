@@ -19,6 +19,7 @@ namespace Controller
         public GameObject hitBox;
         public Animator animator;
         public PlayerVisualController visualController;
+        //public AbilitieController abilitieController;
     
         [Header("Movement")]
         public float moveSpeed = 5f;
@@ -51,6 +52,10 @@ namespace Controller
         [Header("TeleportAbilitie")] 
         private bool canTeleport = true;
         public GameObject teleportTarget;
+        public AbilitiesGeneral teleportAbility;
+        public AbilitiesGeneral sprintAbility;
+        public AbilitiesGeneral doubleJumpAbility;
+        public AbilitiesGeneral shrinkAbility;
 
         private DebugLine debugLine;
 
@@ -224,8 +229,8 @@ namespace Controller
         
         private void OnTeleportPressed(InputAction.CallbackContext ctx)
         {
-            Debug.Log("OnTeleportPressed");
-            StartTeleport();
+            if(PlayerData.Instance.HasAbility(teleportAbility))
+                StartTeleport();
         }
         
         void StartTeleport()
