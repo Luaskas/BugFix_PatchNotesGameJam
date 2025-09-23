@@ -1,7 +1,7 @@
 using Controller;
 using UnityEngine;
 
-public enum abilitieEnum
+public enum AbilitiyType
 {
     Teleport,
     Shrink,

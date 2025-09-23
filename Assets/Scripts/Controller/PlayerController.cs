@@ -49,13 +49,18 @@ namespace Controller
         public float attackDuration = 0.5f;
         private bool canAttack = true;
 
-        [Header("TeleportAbilitie")] 
+        [Header("TeleportAbility - Collider")] 
         private bool canTeleport = true;
         public GameObject teleportTarget;
         public AbilitiesGeneral teleportAbility;
-        public AbilitiesGeneral sprintAbility;
         public AbilitiesGeneral doubleJumpAbility;
         public AbilitiesGeneral shrinkAbility;
+        
+        [Header("SprintAbility - BackJump")]
+        public AbilitiesGeneral sprintAbility;
+        public float backJumpForceUp, backJumpForceBack;
+        private bool performingSprint;
+        
 
         private DebugLine debugLine;
 
@@ -87,6 +92,7 @@ namespace Controller
             inputActions.Player.Attack.performed += ctx => StartAttack();
             debugLine = OnScreenDebugController.Instance.CreateLine("PlayerControllerDebug", "PlayerControllerDebug");
             cam = Camera.main;
+            
         }
 
         private void OnEnable()
@@ -94,6 +100,7 @@ namespace Controller
             inputActions.Player.Enable();
             mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
             inputActions.Player.TeleportCollider.started += OnTeleportPressed;
+            inputActions.Player.Sprint.performed += OnSprintPressed;
         }
 
         private void Start()
@@ -104,6 +111,7 @@ namespace Controller
         private void OnDisable()
         {
             inputActions.Player.TeleportCollider.started -= OnTeleportPressed;
+            inputActions.Player.Sprint.performed -= OnSprintPressed;
             inputActions.Disable();
         }
 
@@ -133,6 +141,7 @@ namespace Controller
             }
 
             // --- Apply horizontal movement ---
+
             controller.Move(move * (moveSpeed * Time.deltaTime));
 
             // --- Ground check BEFORE gravity ---
@@ -143,7 +152,11 @@ namespace Controller
             }
 
             // --- Jump ---
-            if (inputActions.Player.Jump.triggered && isGrounded)
+            if (inputActions.Player.Jump.triggered && isGrounded && !PlayerData.Instance.HasAbility(doubleJumpAbility))
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            }
+            else if (inputActions.Player.Jump.triggered && PlayerData.Instance.HasAbility(doubleJumpAbility))
             {
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             }
@@ -179,6 +192,9 @@ namespace Controller
             isGrounded = controller.isGrounded;
         
             debugLine.Text = $"Errors: {PlayerData.Instance.GetErrors()}";
+            
+            // --- Checking Player Hight to avoid endless Out-Of-Map-Falling
+            if(gameObject.transform.position.y < -20) Respawn();
         }
 
         private void StartAttack()
@@ -198,18 +214,21 @@ namespace Controller
             yield return new WaitForSeconds(attackCooldown);
             canAttack = true;
         }
-
-        private IEnumerator PerformKnockback(Vector3 direction)
-        {
-            knockbackTimerUp = false;
-            visualController.ActivateDamageShader();
-            AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DAMAGE);
         
-            direction.y = knockBackForceUp;
+        private IEnumerator PerformKnockback(Vector3 direction, float forceUp, float forceBack, bool knockBackFromEnemy)
+        {
+            if (knockBackFromEnemy)
+            {
+                visualController.ActivateDamageShader();
+                AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DAMAGE);
+            }
+            knockbackTimerUp = false;
+            
+            direction.y = forceUp;
             direction.Normalize();
 
             // Give an impulse (one-time push)
-            knockbackVelocity = direction * knockBackForceBack;
+            knockbackVelocity = direction * forceBack;
             
             yield return new WaitForSeconds(knockBackTimer);
         
@@ -223,7 +242,7 @@ namespace Controller
             {
                 if(PlayerData.Instance.currentHp <= 0) AudioPlayer.Instance.PlayPlayerSound(PlayerSoundType.DEATH);
                 PlayerData.Instance.TakeDmg(damage);
-                StartCoroutine(PerformKnockback(dir));
+                StartCoroutine(PerformKnockback(dir, knockBackForceUp, knockBackForceBack, true));
             }
         }
         
@@ -259,11 +278,22 @@ namespace Controller
             }
         }
         
+        private void OnSprintPressed(InputAction.CallbackContext ctx)
+        {
+            if(PlayerData.Instance.HasAbility(sprintAbility))
+                StartSprint();
+        }
+
+        private void StartSprint()
+        {
+            Vector3 knockBackDir =  -transform.forward;
+            StartCoroutine(PerformKnockback(knockBackDir, backJumpForceUp, backJumpForceBack, false));
+        }
+        
         public void Respawn()
         {
             // --- Sets position of Player to transform of empty gameObject "Spawn"
             // --- and checks if player has 0 HP -> Refills 
-            Debug.Log("Respawn");
             
             if(PlayerData.Instance.currentHp <= 0)
                 PlayerData.Instance.currentHp = PlayerData.Instance.maxHp;

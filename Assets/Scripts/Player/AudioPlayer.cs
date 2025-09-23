@@ -7,9 +7,11 @@ namespace Player
     public class AudioPlayer : MonoBehaviour
     {
         [SerializeField] private AudioClip errorPickupSound;
+        [SerializeField] private AudioClip abilityPickupSound;
         [SerializeField] private AudioClip playerAttackSound;
         [SerializeField] private AudioClip playerDamageSound;
         [SerializeField] private AudioClip playerDeathSound;
+        
         
         public static AudioPlayer Instance { get; private set; }
         private AudioSource audioSource;
@@ -28,6 +30,11 @@ namespace Player
             audioSource = GetComponent<AudioSource>();
         }
 
+
+        public void PlayAbilityPickupSound()
+        {
+            audioSource.PlayOneShot(abilityPickupSound);
+        }
 
         public void PlayCollectibleSound(CollectibleType type)
         {

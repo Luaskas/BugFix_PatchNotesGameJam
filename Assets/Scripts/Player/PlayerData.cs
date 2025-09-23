@@ -64,15 +64,6 @@ public class PlayerData : MonoBehaviour
         StartCoroutine(UI_Manager.Instance.FadeOut(0, 3f));
     }
     
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Deadzone"))
-        {
-            Debug.Log("Deadzone triggered.");
-            PlayerController.Instance.Respawn();
-        }
-    }
-    
     public List<AbilitiesGeneral> unlockedAbilities = new();
 
     public bool HasAbility(AbilitiesGeneral ability)

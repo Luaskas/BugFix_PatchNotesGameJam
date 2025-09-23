@@ -1,33 +1,34 @@
+using System;
 using Controller;
+using Player;
 using UnityEngine;
 
 public class AbilityPickUp : MonoBehaviour
 {
+    public AbilitiyType abilityType;
     public AbilitiesGeneral abilityToUnlock;
-    private int unlockCounter = 0;
-    
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            switch (unlockCounter)
+            switch (abilityType)
             {
-                case 1:
+                case AbilitiyType.Teleport:
                     PlayerController.Instance.teleportAbility = abilityToUnlock; 
                     break;
-                case 2:
+                case AbilitiyType.Sprint:
                     PlayerController.Instance.sprintAbility = abilityToUnlock;
                     break;
-                case 3:
+                case AbilitiyType.DoubleJump:
                     PlayerController.Instance.doubleJumpAbility = abilityToUnlock;
                     break;
-                case 4:
+                case AbilitiyType.Shrink:
                     PlayerController.Instance.shrinkAbility = abilityToUnlock;
                     break;
             }
-            
+            AudioPlayer.Instance.PlayAbilityPickupSound();
             PlayerData.Instance.UnlockAbility(abilityToUnlock);
-            unlockCounter++;
             Destroy(gameObject);
         }
         
