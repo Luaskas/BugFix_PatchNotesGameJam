@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Controller;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -15,6 +16,8 @@ public class PlayerData : MonoBehaviour
     public int dmg = 5;
     private int errors = 0;
 
+    
+    public List<AbilitiesGeneral> abilities = new List<AbilitiesGeneral>();
 
     private void Awake()
     {
@@ -61,15 +64,22 @@ public class PlayerData : MonoBehaviour
         StartCoroutine(UI_Manager.Instance.FadeOut(0, 3f));
     }
     
-    void OnTriggerEnter(Collider other)
+    public List<AbilitiesGeneral> unlockedAbilities = new();
+
+    public bool HasAbility(AbilitiesGeneral ability)
     {
-        if (other.CompareTag("Deadzone"))
-        {
-            Debug.Log("Deadzone triggered.");
-            PlayerController.Instance.Respawn();
-        }
-            
-            
+        return unlockedAbilities.Contains(ability);
     }
+
+    public void UnlockAbility(AbilitiesGeneral ability)
+    {
+        if (!unlockedAbilities.Contains(ability))
+        {
+            unlockedAbilities.Add(ability);
+            UI_Manager.Instance.ShowAbilitieButton(ability);
+            Debug.Log($"Ability {ability.abilitieName} freigeschaltet!");
+        }
+    }
+    
     
 }

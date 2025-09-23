@@ -13,6 +13,8 @@ public class UI_Manager : MonoBehaviour
 
     public Image HpBar;
     
+    public Button[] abilityButtons = new Button[4];
+    
     public static UI_Manager Instance;
     
     public float speed = 1f;
@@ -105,4 +107,25 @@ public class UI_Manager : MonoBehaviour
         panel.color = c;
         panel.gameObject.SetActive(false);
     }
+
+    public void ShowAbilitieButton(AbilitiesGeneral unlockedAbility)
+    {
+        Debug.Log($"AbilityButton {unlockedAbility.abilitieName} will be shown.");
+        switch (unlockedAbility.abilitieName)
+        {
+            case "Teleport":
+                abilityButtons[0].gameObject.SetActive(true);
+                break;
+            case "Sprint":
+                abilityButtons[1].gameObject.SetActive(true);
+                break;
+            case "Double Jump":
+                abilityButtons[2].gameObject.SetActive(true);
+                break;
+            case "Shrink":
+                abilityButtons[3].gameObject.SetActive(true);
+                break;
+        }
+    }
+    
 }
