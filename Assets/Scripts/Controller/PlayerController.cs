@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Debugging;
+using GameLogic;
 using Player;
 using TMPro;
 using UnityEngine;
@@ -255,10 +256,10 @@ namespace Controller
         void StartTeleport()
         {
             // --- Check for Contact with breachable wall ---
-            if (teleportTarget != null)
+            if (EnvironmentalController.Instance.m_isWallInReach)
             {
                 Debug.Log("TriggerZone detected, gameObject deactivated");
-                teleportTarget.GetComponent<EnvironmentalController>().DeactivateColliderAndWaitForActivation();
+                EnvironmentalController.Instance.DeactivateWallTemp();
             }
                 
             // --- When no contact, then cast Ray to Floor ---
@@ -267,13 +268,10 @@ namespace Controller
                 Ray ray = new Ray(transform.position, -transform.up);
                 RaycastHit hit;
 
-                if (Physics.Raycast(ray, out hit))
+                if (!Physics.Raycast(ray, out hit)) return;
+                if (hit.collider.gameObject.CompareTag("Floor"))
                 {
-                    if (hit.collider.gameObject.CompareTag("Floor"))
-                    {
-                        hit.collider.gameObject.GetComponent<EnvironmentalController>().DeactivateColliderAndWaitForActivation();
-                        
-                    }
+                    EnvironmentalController.Instance.DeactivateColliderTemp(hit.collider);
                 }
             }
         }

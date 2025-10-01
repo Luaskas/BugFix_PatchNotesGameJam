@@ -1,57 +1,56 @@
-using System;
 using System.Collections;
-using Controller;
-using UnityEditor.UIElements;
+using NUnit.Framework.Constraints;
 using UnityEngine;
 
-public class EnvironmentalController : MonoBehaviour
+namespace GameLogic
 {
-    private Collider collisionCollider;
-    //private Collider parentCollider;
-    private SphereCollider triggerZone;
-    
-    private void Start()
+    public class EnvironmentalController : MonoBehaviour
     {
-        //parentCollider = gameObject.GetComponent<SphereCollider>();
-        collisionCollider = gameObject.GetComponent<Collider>();
-        triggerZone = gameObject.GetComponent<SphereCollider>();
-    }
-    
-    
-    // --- Deactivate the Collider for walkable Ground-GameObjects ---
-    // takes string from PlayerController and dynamically takes effect of TeleportAbility to
-    // Ground Collider or the ParentCollider in the breachable Walls/Platform
-    // and activates both after waiting for 1 sec.
-    public void DeactivateColliderAndWaitForActivation()
-    {
-        collisionCollider.enabled = false;
-        StartCoroutine(ReActivateAllCollider());
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
+        public static EnvironmentalController Instance;
+        
+        private Collider _currentWallInReach;
+        public bool m_isWallInReach = false;
+        
+        private void Awake()
         {
-            PlayerController.Instance.teleportTarget = gameObject;
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+
+        public void SelectWallInReach(Collider wallInReach)
+        {
+            _currentWallInReach = wallInReach;
+            m_isWallInReach = true;
+        }
+
+        public void DeselectWallInReach()
+        {
+            _currentWallInReach = null;
+            m_isWallInReach = false;
         }
         
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
+        public void DeactivateWallTemp()
         {
-            PlayerController.Instance.teleportTarget = null;
+            _currentWallInReach.enabled = false;
+            StartCoroutine(ReActivateCollider(_currentWallInReach));
+        }
+        
+        public void DeactivateColliderTemp(Collider pColliderToDeactivate)
+        {
+            pColliderToDeactivate.enabled = false;
+            StartCoroutine(ReActivateCollider(pColliderToDeactivate));
+        }
+        
+        IEnumerator ReActivateCollider(Collider pColliderToReactivate)
+        {
+            yield return new WaitForSeconds(1f);
+            pColliderToReactivate.enabled = true;
         }
     }
-
-    IEnumerator ReActivateAllCollider()
-    {
-        yield return new WaitForSeconds(1f);
-        collisionCollider.enabled = true;
-    }
-
-    
-    
-    
 }
