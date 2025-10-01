@@ -15,4 +15,4 @@ MonoBehaviour:
   abilitieName: Double Jump
   description: Reach for platform, far beyond your range of jumping, by jumping a
     second time after your first one.
-  icon: {fileID: 21300000, guid: 88b19dccf337c41598970429bd7a3af1, type: 3}
+  icon: {fileID: 21300000, guid: 5182316776815427ea47960325562c43, type: 3}

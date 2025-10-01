@@ -15,4 +15,4 @@ MonoBehaviour:
   abilitieName: Sprint
   description: Let your wheelsphere spin faster, to overcome obsctacles, normally
     moving to fast for you.
-  icon: {fileID: 21300000, guid: 2a507f339f68c465cb98ed7d10af337c, type: 3}
+  icon: {fileID: 21300000, guid: 88b19dccf337c41598970429bd7a3af1, type: 3}

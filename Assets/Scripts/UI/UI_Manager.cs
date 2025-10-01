@@ -14,6 +14,7 @@ public class UI_Manager : MonoBehaviour
     public Image HpBar;
     
     public Button[] abilityButtons = new Button[4];
+    public GameObject[] controllSceme = new GameObject[4];
     
     public static UI_Manager Instance;
     
@@ -115,15 +116,19 @@ public class UI_Manager : MonoBehaviour
         {
             case "Teleport":
                 abilityButtons[0].gameObject.SetActive(true);
+                controllSceme[0].gameObject.SetActive(true);
                 break;
             case "Sprint":
                 abilityButtons[1].gameObject.SetActive(true);
+                controllSceme[1].gameObject.SetActive(true);
                 break;
             case "Double Jump":
-                abilityButtons[2].gameObject.SetActive(true);
+                abilityButtons[2].transform.GetChild(0).GetComponent<Image>().sprite = unlockedAbility.icon;
+                //abilityButtons[2].GetComponentInChildren<Image>().sprite = unlockedAbility.icon;
                 break;
             case "Shrink":
                 abilityButtons[3].gameObject.SetActive(true);
+                controllSceme[3].gameObject.SetActive(true);
                 break;
         }
     }

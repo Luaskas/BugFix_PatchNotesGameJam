@@ -56,6 +56,9 @@ public class PlayerData : MonoBehaviour
     
     public int GetErrors() => errors;
 
+    
+    // Future Changes: Replace StartCoroutine with Invoke, to make sure, Screenfade will be priortised and is completly
+    // faded back, before inputActions will be reactivated.
     private void Die()
     {
         Debug.Log("Player Died.");
@@ -77,7 +80,7 @@ public class PlayerData : MonoBehaviour
         {
             unlockedAbilities.Add(ability);
             UI_Manager.Instance.ShowAbilitieButton(ability);
-            Debug.Log($"Ability {ability.abilitieName} freigeschaltet!");
+            Debug.Log($"Ability {ability.abilitieName} unlocked!");
         }
     }
     

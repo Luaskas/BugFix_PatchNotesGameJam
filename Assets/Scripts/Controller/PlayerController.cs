@@ -28,6 +28,9 @@ namespace Controller
         [Header("Jump / Gravity")]
         public float gravity = -9.81f;
         public float jumpHeight = 2f;
+        public float jumpHightMultiplier = 0.9f;
+        public float currentJumpHeight = 2f;
+        
         public float gravityMultiplier = 2f; 
         public float fallMultiplier = 2.5f; 
         public float maxFallSpeed = -20f;     
@@ -60,7 +63,9 @@ namespace Controller
         public AbilitiesGeneral sprintAbility;
         public float backJumpForceUp, backJumpForceBack;
         private bool performingSprint;
-        
+
+        [Header("Interaction")] 
+        public bool collisionWithNpc;        
 
         private DebugLine debugLine;
 
@@ -101,11 +106,14 @@ namespace Controller
             mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
             inputActions.Player.TeleportCollider.started += OnTeleportPressed;
             inputActions.Player.Sprint.performed += OnSprintPressed;
+            inputActions.Player.Interact.performed += OnInteractPressed;
+            //inputActions.Player.Interact.performed += OnInteractionPressed;
         }
 
         private void Start()
         {
             visualController.ActivateDefaultShader();
+            currentJumpHeight = jumpHeight;
         }
 
         private void OnDisable()
@@ -154,11 +162,24 @@ namespace Controller
             // --- Jump ---
             if (inputActions.Player.Jump.triggered && isGrounded && !PlayerData.Instance.HasAbility(doubleJumpAbility))
             {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                velocity.y = Mathf.Sqrt(currentJumpHeight * -2f * gravity);
             }
+            // After DoubleJump is available, curentJumpHeight will be reduced with every jump, until Jump(); will be disabled
             else if (inputActions.Player.Jump.triggered && PlayerData.Instance.HasAbility(doubleJumpAbility))
             {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                velocity.y = Mathf.Sqrt(currentJumpHeight * -2f * gravity);
+                currentJumpHeight *= jumpHightMultiplier;
+                if (currentJumpHeight < 0.1f)
+                {
+                    inputActions.Player.Jump.Disable();
+                }
+            }
+            
+            // --- Reset currentJumpHeight after Grounded and Enable InputAction.Jump() ---
+            if (isGrounded)
+            {
+                currentJumpHeight = jumpHeight;
+                inputActions.Player.Jump.Enable();
             }
 
             // --- Apex detection ---
@@ -301,6 +322,16 @@ namespace Controller
             controller.enabled = false;
             gameObject.transform.position = GameManager.Instance.spawn.transform.position;
             controller.enabled = true;
+        }
+
+        private void OnInteractPressed(InputAction.CallbackContext ctx)
+        {
+            if (collisionWithNpc) StartNpcInteraction();
+        }
+
+        private void StartNpcInteraction()
+        {
+            
         }
         
     }

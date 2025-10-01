@@ -1,4 +1,5 @@
 using System;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -65,4 +66,7 @@ public class CameraBehaviour : MonoBehaviour
         Vector3 smoothedPosition = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
         transform.position = smoothedPosition;
     }
+    
+    
+    
 }
