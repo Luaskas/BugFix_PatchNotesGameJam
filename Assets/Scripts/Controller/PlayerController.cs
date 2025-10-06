@@ -65,8 +65,10 @@ namespace Controller
         private bool performingSprint;
 
         [Header("Interaction")] 
-        public bool collisionWithNpc;        
-
+        public bool collisionWithNpc;
+        public static event Action OnDialogStarted;
+        public static event Action OnDialogEnded;
+        
         private DebugLine debugLine;
 
         private static readonly int IsMoving = Animator.StringToHash("isMoving");
@@ -103,7 +105,7 @@ namespace Controller
         private void OnEnable()
         {
             inputActions.Player.Enable();
-            mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
+            //mainCamera.GetComponent<CameraBehaviour>().currentCameraState = CameraStates.ActivePlayScene;
             inputActions.Player.TeleportCollider.started += OnTeleportPressed;
             inputActions.Player.Sprint.performed += OnSprintPressed;
             inputActions.Player.Interact.performed += OnInteractPressed;
@@ -331,8 +333,18 @@ namespace Controller
 
         private void StartNpcInteraction()
         {
-            
+            inputActions.Player.Disable();
+            inputActions.UI.Enable();
+            OnDialogStarted?.Invoke();
         }
+
+        public void EndDialog()
+        {
+            OnDialogEnded?.Invoke();
+            inputActions.UI.Disable();
+            inputActions.Player.Enable();
+        }
+        
         
     }
 }

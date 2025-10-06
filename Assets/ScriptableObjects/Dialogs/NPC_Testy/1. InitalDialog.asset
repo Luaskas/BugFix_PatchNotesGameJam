@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cc2de1ef1b05864dac0c0b6b9e1688c, type: 3}
+  m_Name: 1. InitalDialog
+  m_EditorClassIdentifier: Assembly-CSharp::Dialogs
+  speakerName: Testy
+  npcText: Hey! If you can read this, then you are able to speak to other NPCs!
+  choices:
+  - choiceText: Yes I Can!
+    nextDialog: {fileID: 11400000, guid: 78fdac3345864b149ae540df746966f9, type: 2}
+  - choiceText: No I Can Not!
+    nextDialog: {fileID: 11400000, guid: 80e6d15a9486f2143971c6f394625a7b, type: 2}
+  canEndDialog: 0

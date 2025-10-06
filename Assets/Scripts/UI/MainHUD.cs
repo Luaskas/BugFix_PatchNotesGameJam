@@ -4,25 +4,26 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Serialization;
 using System.Collections;
+using Controller;
 
-public class UI_Manager : MonoBehaviour
+public class MainHUD : MonoBehaviour
 {
     //public RectTransform[] panels;
     
-    public Transform panel;
+    //public Transform panel;
 
     public Image HpBar;
     
     public Button[] abilityButtons = new Button[4];
     public GameObject[] controllSceme = new GameObject[4];
     
-    public static UI_Manager Instance;
+    public static MainHUD Instance;
     
     public float speed = 1f;
     public float hpSmooth = 0.0f;
-    public float smoothFade = 0.0f;
+    //public float smoothFade = 0.0f;
 
-    public string scene;
+    //public string scene;
     
     private void Awake()
     {
@@ -33,6 +34,18 @@ public class UI_Manager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    void OnEnable()
+    {
+        PlayerController.OnDialogStarted += DeactivateHUD;
+        PlayerController.OnDialogEnded += ActivateHUD;
+    }
+
+    void OnDisable()
+    {
+        PlayerController.OnDialogStarted -= DeactivateHUD;
+        PlayerController.OnDialogEnded -= ActivateHUD;
     }
     
     void Update()
@@ -56,11 +69,6 @@ public class UI_Manager : MonoBehaviour
         {
             HpBar.color = Color.red;
         }
-    }
-    public void OnSceneButtonClicked(int sceneIndex)
-    {
-        GameScene scene = (GameScene)sceneIndex;
-        SceneLoader.LoadScene(scene);
     }
     
     [SerializeField] private Image[] panels;
@@ -131,6 +139,16 @@ public class UI_Manager : MonoBehaviour
                 controllSceme[3].gameObject.SetActive(true);
                 break;
         }
+    }
+
+    void DeactivateHUD()
+    {
+        gameObject.SetActive(false);
+    }
+
+    void ActivateHUD()
+    {
+        gameObject.SetActive(true);
     }
     
 }

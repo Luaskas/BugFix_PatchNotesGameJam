@@ -1,4 +1,5 @@
 using System;
+using Controller;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,22 +13,50 @@ public enum CameraStates
 
 public class CameraBehaviour : MonoBehaviour
 {
-    public CameraStates currentCameraState;
+    //public CameraStates currentCameraState;
 
+    
     public LetterboxBars letterboxBars;
-    
-    public Transform player;
-    public Transform dialogSnap;
-    
-    [FormerlySerializedAs("cameraOffset")] public Vector3 cameraPlayerOffset = new Vector3(0f, 6f, -10f);
-    public Vector3 cameraDialogOffset = new Vector3(5.67f, 0.97f, 2.15f);
-    public float smoothSpeed = 5f;
 
+    public CinemachineCamera[] cameras;
+    public CinemachineCamera activeCamera;
+    
+    public Vector3 cameraOffset = new Vector3(0, 0, 0);
+
+    private bool dialogActive;
+    
     private void Awake()
     {
-        currentCameraState = CameraStates.ActivePlayScene;
+        //currentCameraState = CameraStates.ActivePlayScene;
+        
     }
 
+    void Start()
+    {
+        FollowCamera();
+    }
+    /*
+    void Update()
+    {
+        if (dialogActive)
+        {
+            activeCamera.transform.position = DialogTargetController.Instance.transform.right + cameraOffset;
+        }
+    }
+    */
+    void OnEnable()
+    {
+        PlayerController.OnDialogStarted += DialogCamera;
+        PlayerController.OnDialogEnded += FollowCamera;
+    }
+
+    void OnDisable()
+    {
+        PlayerController.OnDialogStarted -= DialogCamera;
+        PlayerController.OnDialogEnded -= FollowCamera;
+    }
+    
+    /*
     void LateUpdate()
     {
         switch (currentCameraState)
@@ -37,36 +66,49 @@ public class CameraBehaviour : MonoBehaviour
                 letterboxBars.HideBars();
                 break;
             case CameraStates.Dialog:
-                GoToOffset(cameraDialogOffset);
                 letterboxBars.ShowBars();
                 break;
             case CameraStates.Inactive:
                 break;
         }
+    }*/
+    
+
+    void DialogCamera()
+    {
+        dialogActive = true;
+        DeactivateCameras();
+        FindCameraInArray("DialogCam");
+        activeCamera.Priority = 20;
+        letterboxBars.ShowBars();
+        
     }
 
-    void GoToOffset(Vector3 offset)
+    void FollowCamera()
     {
-        Vector3 targetPosition = player.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
-        transform.position = smoothedPosition;
-        
-        if(currentCameraState == CameraStates.ActivePlayScene)
-            transform.LookAt(player);
-        if (currentCameraState == CameraStates.Dialog)
+        dialogActive = false;
+        DeactivateCameras();
+        FindCameraInArray("FollowCam");
+        activeCamera.Priority = 20;
+        letterboxBars.HideBars();
+    }
+
+    void DeactivateCameras()
+    {
+        foreach (var camera in cameras)
         {
-            transform.LookAt(dialogSnap);
+            camera.Priority = 0;
         }
-        
     }
 
-    void FollowDialog(Vector3 offset)
+    void FindCameraInArray(string cameraName)
     {
-        Vector3 targetPosition = player.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
-        transform.position = smoothedPosition;
+        foreach (var cam in cameras)
+        {
+            string tempName;
+            tempName = cam.gameObject.name;
+            if(tempName == cameraName) activeCamera = cam;
+        }
     }
-    
-    
     
 }

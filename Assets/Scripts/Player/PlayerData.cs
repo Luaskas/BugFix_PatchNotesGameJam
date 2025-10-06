@@ -16,8 +16,7 @@ public class PlayerData : MonoBehaviour
     public int dmg = 5;
     private int errors = 0;
 
-    
-    public List<AbilitiesGeneral> abilities = new List<AbilitiesGeneral>();
+    public List<AbilitiesGeneral> unlockedAbilities = new();
 
     private void Awake()
     {
@@ -62,12 +61,12 @@ public class PlayerData : MonoBehaviour
     private void Die()
     {
         Debug.Log("Player Died.");
-        StartCoroutine(UI_Manager.Instance.FadeIn(0, 3f));
+        StartCoroutine(MainHUD.Instance.FadeIn(0, 3f));
         PlayerController.Instance.Respawn();
-        StartCoroutine(UI_Manager.Instance.FadeOut(0, 3f));
+        StartCoroutine(MainHUD.Instance.FadeOut(0, 3f));
     }
     
-    public List<AbilitiesGeneral> unlockedAbilities = new();
+    
 
     public bool HasAbility(AbilitiesGeneral ability)
     {
@@ -79,7 +78,7 @@ public class PlayerData : MonoBehaviour
         if (!unlockedAbilities.Contains(ability))
         {
             unlockedAbilities.Add(ability);
-            UI_Manager.Instance.ShowAbilitieButton(ability);
+            MainHUD.Instance.ShowAbilitieButton(ability);
             Debug.Log($"Ability {ability.abilitieName} unlocked!");
         }
     }
